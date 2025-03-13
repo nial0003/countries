@@ -1,7 +1,9 @@
 package kea.iabr.countries.repository;
 
 import kea.iabr.countries.model.Country;
+import kea.iabr.countries.model.CountryRowMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
@@ -17,24 +19,15 @@ public class CountryRepository {
     @Value("${spring.datasource.password}")
     private String password;
 
-    public List<Country> findAll() {
-        List<Country> countries = new ArrayList<>();
-        String sql = "SELECT * FROM countries";
+    private final JdbcTemplate jdbcTemplate;
 
-        try (Connection connection = DriverManager.getConnection(dbUrl, username, password)) {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
+    public CountryRepository(JdbcTemplate jdbcTemplate){
+        this.jdbcTemplate= jdbcTemplate;
+    }
 
-            while (resultSet.next()) {
-                Country country = new Country(resultSet.getLong("id"), resultSet.getString("name"));
-                countries.add(country);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return countries;
+    public List<Country> findAll(){
+        String sql =  "SELECT * FROM countries";
+        return jdbcTemplate.query(sql, new CountryRowMapper());
     }
 }
 
